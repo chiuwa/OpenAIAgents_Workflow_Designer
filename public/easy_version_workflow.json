@@ -1,0 +1,147 @@
+{
+  "workflowName": "簡易範例工作流",
+  "workflowDescription": "一個包含 Input, Agent (帶 Pydantic Output), Function Tool 和 Runner 的基礎工作流。",
+  "nodes": [
+    {
+      "id": "input_user_greeting",
+      "type": "input",
+      "position": {
+        "x": 50,
+        "y": 100
+      },
+      "data": {
+        "nodeType": "input",
+        "name": "用戶問候",
+        "message": "Hello, what can you do? ",
+        "isExpanded": true
+      },
+      "width": 150,
+      "height": 124,
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "tool_greet_user",
+      "type": "functionTool",
+      "position": {
+        "x": 560,
+        "y": 160
+      },
+      "data": {
+        "nodeType": "functionTool",
+        "name": "問候語生成工具",
+        "description": "Generates a greeting message.",
+        "parameters": [
+          {
+            "id": "param_user_name_greet",
+            "name": "user_name",
+            "type": "string",
+            "description": "Name of the user."
+          }
+        ],
+        "returnType": "string",
+        "implementation": "return f\"Hello {user_name}! I am a helpful assistant. You asked: '{initial_input_message}'\"",
+        "isExpanded": false
+      },
+      "width": 250,
+      "height": 147,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 560,
+        "y": 160
+      }
+    },
+    {
+      "id": "agent_greeting_processor",
+      "type": "agent",
+      "position": {
+        "x": 288,
+        "y": 368
+      },
+      "data": {
+        "nodeType": "agent",
+        "name": "問候處理 Agent",
+        "instructions": "You are an agent that greets the user. Use the '問候語生成工具' to formulate a response. The user's name is 'Guest' if not otherwise specified. Include the original message in your greeting.",
+        "pydanticSchema": {
+          "id": "schema_greeting_output_unique",
+          "modelName": "GreetingResponse",
+          "description": "The structured response from the Greeting Agent.",
+          "fields": [
+            {
+              "id": "field_gr_1_unique",
+              "name": "greeting_message",
+              "type": "string",
+              "isOptional": false,
+              "description": "The generated greeting message."
+            },
+            {
+              "id": "field_gr_2_unique",
+              "name": "processed_input",
+              "type": "string",
+              "isOptional": false,
+              "description": "The input message that was processed."
+            }
+          ]
+        },
+        "isExpanded": true
+      },
+      "width": 250,
+      "height": 248,
+      "selected": false,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 288,
+        "y": 368
+      }
+    },
+    {
+      "id": "runner_execute_greeting",
+      "type": "runner",
+      "position": {
+        "x": 288,
+        "y": 736
+      },
+      "data": {
+        "nodeType": "runner",
+        "name": "執行問候 Agent",
+        "input": "Hello, what can you do? ",
+        "executionMode": "sync",
+        "context": "{\"initial_input_message\": \"Hello, what can you do?\"}",
+        "isExpanded": true
+      },
+      "width": 250,
+      "height": 174,
+      "selected": true,
+      "dragging": false,
+      "positionAbsolute": {
+        "x": 288,
+        "y": 736
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_input_to_agent_greeting_conceptual",
+      "source": "input_user_greeting",
+      "target": "agent_greeting_processor",
+      "type": "custom",
+      "label": "Provides Input For Runner"
+    },
+    {
+      "id": "edge_tool_greet_to_agent_greeting",
+      "source": "tool_greet_user",
+      "target": "agent_greeting_processor",
+      "type": "custom",
+      "label": "Tool For Agent"
+    },
+    {
+      "id": "edge_agent_greeting_to_runner_execute",
+      "source": "agent_greeting_processor",
+      "target": "runner_execute_greeting",
+      "type": "custom",
+      "label": "Executed By",
+      "animated": true
+    }
+  ]
+}
