@@ -111,8 +111,10 @@ The project will provide two example JSON files that you can import via the "Loa
 
 *   `easy_version_workflow.json`: 一個包含基本節點（Input, Agent, Function Tool, Runner）的簡單工作流。
     *   A simple workflow containing basic nodes (Input, Agent, Function Tool, Runner).
+    *   https://github.com/chiuwa/OpenAIAgents_Workflow_Designer/blob/main/public/easy_version_workflow.json
 *   `sample_workflow.json`: 一個更複雜的工作流，展示了包括 Guardrail 在內的多種節點和交互。
     *   A more complex workflow demonstrating various nodes and interactions, including Guardrails.
+    *   https://github.com/chiuwa/OpenAIAgents_Workflow_Designer/blob/main/public/sample_workflow.json
 
 這些文件位於項目的 `/public/` 目錄下。
 These files will be located in the project's `/public/` directory.
