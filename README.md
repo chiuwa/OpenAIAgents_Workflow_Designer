@@ -114,8 +114,8 @@ The project will provide two example JSON files that you can import via the "Loa
 *   `sample_workflow.json`: 一個更複雜的工作流，展示了包括 Guardrail 在內的多種節點和交互。
     *   A more complex workflow demonstrating various nodes and interactions, including Guardrails.
 
-這些文件位於項目的 `/public/examples/` 目錄下。
-These files will be located in the project's `/public/examples/` directory.
+這些文件位於項目的 `/public/` 目錄下。
+These files will be located in the project's `/public/` directory.
 
 ## 貢獻 (Contributing)
 
