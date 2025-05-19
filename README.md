@@ -12,6 +12,9 @@ An open-source, web-based visual tool that allows users to design OpenAI Agents 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Demo / 截圖 (Demo / Screenshots)
+![ezgif-67056134e15fc2](https://github.com/user-attachments/assets/c6bd5798-0f4a-4d6b-92e2-3c5ecf220bc4)
+![ezgif-63bd4ac2eae5c7](https://github.com/user-attachments/assets/5f55f6b2-a124-4b64-87be-494c18c51cb6)
+
 ![image](https://github.com/user-attachments/assets/ee6cee31-39e6-4e75-a94d-ef621576a807)
 ![image](https://github.com/user-attachments/assets/cf82b0ac-a784-4e8e-8ab7-4397518a0ac8)
 ![image](https://github.com/user-attachments/assets/7d441e67-69f9-40c6-abe9-68d74357b22e)
