@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import ReactFlow, {
-  Background, Controls, Node, Edge, OnNodesChange, OnEdgesChange, XYPosition,
+  Background, Controls, Node, /*Edge,*/ OnNodesChange, OnEdgesChange, /*XYPosition,*/
   applyNodeChanges, applyEdgeChanges,
   useReactFlow, Connection, addEdge,
   BackgroundVariant

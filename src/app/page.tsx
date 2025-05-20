@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 // import { App } from 'antd'; // Removed Ant Design App import
 import Button from '@mui/material/Button'; // Added MUI Button import
 import IconButton from '@mui/material/IconButton'; // ADDED IconButton
 import SaveIcon from '@mui/icons-material/Save'; // ADDED SaveIcon
 import FileUploadIcon from '@mui/icons-material/FileUpload'; // ADDED FileUploadIcon
-import Sidebar from '../components/Sidebar';
+// import Sidebar from '../components/Sidebar'; // Removed Sidebar
 import Canvas from '../components/Canvas';
 import PropertiesPanel from '../components/PropertiesPanel';
 import CodeModal from '../components/CodeModal';
@@ -19,9 +19,9 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
-import { useTheme } from '@mui/material/styles';
+// import { useTheme } from '@mui/material/styles'; // Removed useTheme
 import TerminalIcon from '@mui/icons-material/Terminal';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+// import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'; // Removed RocketLaunchIcon
 import TextField from '@mui/material/TextField'; // Import TextField
 
 /**
@@ -34,7 +34,7 @@ export default function Home() {
   const { nodes, edges } = useWorkflowStore();
   const [codeVisible, setCodeVisible] = useState(false);
   const [pythonCode, setPythonCode] = useState("");
-  const theme = useTheme();
+  // const theme = useTheme(); // Removed theme
   // Get workflow metadata and setters from store
   const workflowName = useWorkflowStore((state) => state.workflowName);
   const workflowDescription = useWorkflowStore((state) => state.workflowDescription);

@@ -8,7 +8,9 @@ import { CacheProvider as EmotionCacheProvider } from '@emotion/react'; // Renam
 // https://mui.com/material-ui/guides/next-js-app-router/
 
 export default function NextAppDirEmotionCacheProvider(props: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   CacheProvider?: any;
   children: React.ReactNode;
 }) {

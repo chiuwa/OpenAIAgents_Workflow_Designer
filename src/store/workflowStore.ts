@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import { Node, Edge } from 'reactflow';
 import { CustomNodeData, InputNodeData, RunnerNodeData, AgentNodeData, FunctionToolNodeData, GuardrailNodeData } from '../types/workflowNodes';
 

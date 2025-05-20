@@ -92,7 +92,8 @@ function mapPydanticFieldTypeToPython(fieldType: PydanticField['type']): string 
 function generatePydanticModelPythonCode(
   schema: PydanticModelSchema,
   modelPythonName: string, // Already sanitized and unique
-  globalPythonIdentifiers: Set<string> // Used for model name, not field names directly here
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _globalPythonIdentifiers: Set<string> 
 ): string {
   let modelCode = `class ${modelPythonName}(BaseModel):\n`;
   
@@ -113,7 +114,7 @@ function generatePydanticModelPythonCode(
     schema.fields.forEach(field => {
       const fieldName = generatePythonIdentifier(field.name, 'field', modelFieldNames, field.id);
       
-      let pyType = mapPydanticFieldTypeToPython(field.type);
+      const pyType = mapPydanticFieldTypeToPython(field.type);
       
       let fieldDefinition = `    ${fieldName}: `;
       if (field.isOptional) {
@@ -515,8 +516,10 @@ function generateGuardrailPythonCode(
   internalAgentPyName: string,
   guardrailFuncPyName: string,
   pydanticModelInfo: Map<string, { pyName: string, schema: PydanticModelSchema }>,
-  pythonIdentifiers: Set<string>, 
-  nodeId: string 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _pythonIdentifiers: Set<string>, 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _nodeId: string 
 ): string {
   let guardrailCode = '';
   const internalAgentData = {

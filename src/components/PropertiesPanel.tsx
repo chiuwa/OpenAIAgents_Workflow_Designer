@@ -1,8 +1,8 @@
 import React from 'react';
 // import { Form, Input, Select, Switch } from 'antd'; // AntD imports removed
 import { useWorkflowStore } from '../store/workflowStore';
-import { CustomNodeData, AgentNodeData, RunnerNodeData, FunctionToolNodeData, NodeBaseData, InputNodeData, FunctionToolParameter, PydanticModelSchema, PydanticField, GuardrailNodeData, GuardrailType } from '../types/workflowNodes';
-import { Node } from 'reactflow';
+import { CustomNodeData, AgentNodeData, RunnerNodeData, FunctionToolNodeData, /*NodeBaseData,*/ InputNodeData, FunctionToolParameter, PydanticModelSchema, PydanticField, GuardrailNodeData, GuardrailType } from '../types/workflowNodes'; // Removed NodeBaseData
+// import { Node } from 'reactflow'; // Removed Node
 import Editor from '@monaco-editor/react'; // Import Monaco Editor
 
 import Box from '@mui/material/Box';
@@ -50,10 +50,10 @@ const isValidPythonIdentifier = (name: string): { valid: boolean; message: strin
 };
 
 const commonTextFieldProps = {
-  variant: 'outlined' as 'outlined',
+  variant: 'outlined' as const,
   fullWidth: true,
-  size: 'small' as 'small',
-  margin: 'normal' as 'normal',
+  size: 'small' as const,
+  margin: 'normal' as const,
 };
 
 /**
@@ -68,8 +68,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
   // Determine if Pydantic schema is active based on its presence
   const hasPydanticSchema = !!data.pydanticSchema;
 
-  const handleChange = (field: keyof AgentNodeData, value: any) => {
-    // No special handling for output_type anymore, directly update other fields
+  const handleChange = (field: keyof AgentNodeData, value: AgentNodeData[keyof AgentNodeData]) => {
     updateNodeData(nodeId, { [field]: value } as Partial<AgentNodeData>);
   };
 
@@ -78,7 +77,8 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
     if (hasPydanticSchema) {
       // To remove, we set pydanticSchema to undefined
       // Create a new object without pydanticSchema
-      const { pydanticSchema, ...restData } = data; // Destructure to remove pydanticSchema
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { pydanticSchema: _removedSchema, ...restData } = data; 
       updateNodeData(nodeId, { ...restData, pydanticSchema: undefined } as Partial<AgentNodeData>);
     } else {
       // To add, we initialize with a default structure
@@ -88,33 +88,29 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
     }
   };
 
-  const handlePydanticSchemaChange = (field: keyof PydanticModelSchema, value: any) => {
-    if (data.pydanticSchema) { // Should only be called if schema exists
+  const handlePydanticSchemaChange = (field: keyof PydanticModelSchema, value: PydanticModelSchema[keyof PydanticModelSchema]) => {
+    if (data.pydanticSchema) {
       let validationResult = { valid: true, message: '' };
       if (field === 'modelName') {
         validationResult = isValidPythonIdentifier(value as string);
         setModelNameValidation(validationResult);
       }
-      // Only update if UI validation passes or if we want to allow invalid input and let backend sanitize
-      // For now, let's update always and show error, backend will sanitize.
       updateNodeData(nodeId, { 
         pydanticSchema: { ...data.pydanticSchema, [field]: value } 
       } as Partial<AgentNodeData>);
     }
   };
 
-  const handlePydanticFieldChange = (fieldId: string, fieldProperty: keyof PydanticField, value: any) => {
+  const handlePydanticFieldChange = (fieldId: string, fieldProperty: keyof PydanticField, value: PydanticField[keyof PydanticField]) => {
     if (data.pydanticSchema) {
       let currentFieldValidation = { valid: true, message: '' };
       if (fieldProperty === 'name') {
         currentFieldValidation = isValidPythonIdentifier(value as string);
         setFieldNameValidations(prev => ({ ...prev, [fieldId]: currentFieldValidation }));
       }
-
       const updatedFields = data.pydanticSchema.fields.map(f => 
         f.id === fieldId ? { ...f, [fieldProperty]: value } : f
       );
-      // Again, update store regardless of UI validation for now.
       updateNodeData(nodeId, { 
         pydanticSchema: { ...data.pydanticSchema, fields: updatedFields } 
       } as Partial<AgentNodeData>);
@@ -143,7 +139,8 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
       handlePydanticSchemaChange('fields', updatedFields);
       // Remove validation state for the deleted field
       setFieldNameValidations(prev => {
-        const { [fieldId]: _, ...rest } = prev;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldId]: _removedField, ...rest } = prev; 
         return rest;
       });
     }
@@ -205,13 +202,13 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
       <TextField
         label="名稱"
         value={data.name}
-        onChange={(e) => handleChange('name', e.target.value)}
+        onChange={(e) => handleChange('name', e.target.value as AgentNodeData[keyof AgentNodeData])}
         {...commonTextFieldProps}
       />
       <TextField
         label="指示 (Instructions)"
         value={data.instructions}
-        onChange={(e) => handleChange('instructions', e.target.value)}
+        onChange={(e) => handleChange('instructions', e.target.value as AgentNodeData[keyof AgentNodeData])}
         multiline
         rows={4}
         {...commonTextFieldProps}
@@ -219,7 +216,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
       <TextField
         label="Handoff 描述"
         value={data.handoff_description || ''}
-        onChange={(e) => handleChange('handoff_description', e.target.value)}
+        onChange={(e) => handleChange('handoff_description', e.target.value as AgentNodeData[keyof AgentNodeData])}
         {...commonTextFieldProps}
       />
       <FormControlLabel
@@ -236,7 +233,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
           <TextField
             label="模型名稱 (Python Class Name)"
             value={data.pydanticSchema.modelName}
-            onChange={(e) => handlePydanticSchemaChange('modelName', e.target.value)}
+            onChange={(e) => handlePydanticSchemaChange('modelName', e.target.value as PydanticModelSchema[keyof PydanticModelSchema])}
             {...commonTextFieldProps}
             error={!modelNameValidation.valid}
             helperText={modelNameValidation.valid ? "符合 Python 類別命名規範" : modelNameValidation.message}
@@ -244,7 +241,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
           <TextField
             label="模型描述 (Docstring)"
             value={data.pydanticSchema.description || ''}
-            onChange={(e) => handlePydanticSchemaChange('description', e.target.value)}
+            onChange={(e) => handlePydanticSchemaChange('description', e.target.value as PydanticModelSchema[keyof PydanticModelSchema])}
             multiline
             rows={2}
             {...commonTextFieldProps}
@@ -260,7 +257,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
                 <TextField
                   label="字段名稱"
                   value={field.name}
-                  onChange={(e) => handlePydanticFieldChange(field.id, 'name', e.target.value)}
+                  onChange={(e) => handlePydanticFieldChange(field.id, 'name', e.target.value as PydanticField[keyof PydanticField])}
                   size="small"
                   variant="outlined"
                   sx={{ flexGrow: 1 }}
@@ -274,7 +271,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
                     label="類型"
                     value={field.type}
                     onChange={(e: SelectChangeEvent<PydanticField['type']>) =>
-                      handlePydanticFieldChange(field.id, 'type', e.target.value)
+                      handlePydanticFieldChange(field.id, 'type', e.target.value as PydanticField[keyof PydanticField])
                     }
                   >
                     {pydanticFieldTypes.map(type => (
@@ -289,7 +286,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
               <TextField
                 label="字段描述 (可選)"
                 value={field.description || ''}
-                onChange={(e) => handlePydanticFieldChange(field.id, 'description', e.target.value)}
+                onChange={(e) => handlePydanticFieldChange(field.id, 'description', e.target.value as PydanticField[keyof PydanticField])}
                 size="small"
                 variant="outlined"
                 fullWidth
@@ -301,7 +298,7 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
                 control={
                   <Switch
                     checked={field.isOptional}
-                    onChange={(e) => handlePydanticFieldChange(field.id, 'isOptional', e.target.checked)}
+                    onChange={(e) => handlePydanticFieldChange(field.id, 'isOptional', e.target.checked as PydanticField[keyof PydanticField])}
                     size="small"
                   />
                 }
@@ -364,15 +361,15 @@ const AgentProperties: React.FC<{ nodeId: string; data: AgentNodeData }> = ({ no
 const RunnerProperties: React.FC<{ nodeId: string; data: RunnerNodeData }> = ({ nodeId, data }) => {
   const { updateNodeData } = useWorkflowStore();
 
-  const handleChange = (field: keyof RunnerNodeData, value: any) => {
-    updateNodeData(nodeId, { [field]: value } as Partial<RunnerNodeData>);
+  const handleChange = (field: keyof RunnerNodeData, value: RunnerNodeData[keyof RunnerNodeData]) => {
+    updateNodeData(nodeId, { [field]: value });
   };
   return (
   <Box>
     <TextField
       label="名稱"
       value={data.name}
-      onChange={(e) => handleChange('name', e.target.value)}
+      onChange={(e) => handleChange('name', e.target.value as RunnerNodeData[keyof RunnerNodeData])}
       {...commonTextFieldProps}
     />
     <TextField
@@ -388,7 +385,10 @@ const RunnerProperties: React.FC<{ nodeId: string; data: RunnerNodeData }> = ({ 
       control={
         <Switch
           checked={data.execution_mode === 'async'}
-          onChange={(e) => handleChange('execution_mode', e.target.checked ? 'async' : 'sync')}
+          onChange={(e) => {
+            const new_mode = e.target.checked ? 'async' : 'sync';
+            handleChange('execution_mode', new_mode);
+          }}
         />
       }
       label="異步執行模式 (Async)"
@@ -397,7 +397,7 @@ const RunnerProperties: React.FC<{ nodeId: string; data: RunnerNodeData }> = ({ 
     <TextField
       label="本地上下文 (Local Context)"
       value={data.context || ''}
-      onChange={(e) => handleChange('context', e.target.value)}
+      onChange={(e) => handleChange('context', e.target.value as RunnerNodeData[keyof RunnerNodeData])}
       multiline
       rows={2} // Can adjust rows as needed
       {...commonTextFieldProps}
@@ -413,7 +413,7 @@ const FunctionToolProperties: React.FC<{ nodeId: string; data: FunctionToolNodeD
   const { updateNodeData } = useWorkflowStore();
 
   // Handles changes for fields other than 'parameters'
-  const handleChange = (field: keyof Omit<FunctionToolNodeData, 'parameters'>, value: any) => {
+  const handleChange = (field: keyof Omit<FunctionToolNodeData, 'parameters'>, value: string | boolean | undefined) => {
     updateNodeData(nodeId, { [field]: value } as Partial<FunctionToolNodeData>);
   };
 
@@ -534,7 +534,7 @@ const FunctionToolProperties: React.FC<{ nodeId: string; data: FunctionToolNodeD
       border: '1px solid rgba(255, 255, 255, 0.23)', 
       borderRadius: '4px', 
       padding: '1px', 
-      marginBottom: commonTextFieldProps.margin === 'normal' ? '16px' : '8px'
+      marginBottom: '16px'
     }}>
       <Editor
         height="200px"
@@ -559,31 +559,31 @@ const FunctionToolProperties: React.FC<{ nodeId: string; data: FunctionToolNodeD
  */
 const InputProperties: React.FC<{ nodeId: string; data: InputNodeData }> = ({ nodeId, data }) => {
   const { updateInputMessageAndSyncRunners } = useWorkflowStore();
-  const handleChange = (field: keyof InputNodeData, value: any) => {
+  const handleChange = (field: keyof InputNodeData, value: InputNodeData[keyof InputNodeData]) => {
     if (field === 'message') {
-      updateInputMessageAndSyncRunners(nodeId, value);
+      updateInputMessageAndSyncRunners(nodeId, value as string);
     } else {
       // 其他欄位仍用 updateNodeData
       useWorkflowStore.getState().updateNodeData(nodeId, { [field]: value } as Partial<InputNodeData>);
     }
   };
   return (
-    <Box>
+    <Box sx={{ width: '100%', wordBreak: 'break-word', overflowWrap: 'break-word', boxSizing: 'border-box' }}>
       <TextField
         label="名稱"
         value={data.name}
-        onChange={(e) => handleChange('name', e.target.value)}
+        onChange={(e) => handleChange('name', e.target.value as InputNodeData[keyof InputNodeData])}
         {...commonTextFieldProps}
       />
       <TextField
         label="用戶訊息 (Message)"
         value={data.message}
-        onChange={(e) => handleChange('message', e.target.value)}
+        onChange={(e) => handleChange('message', e.target.value as InputNodeData[keyof InputNodeData])}
         multiline
         rows={3}
         {...commonTextFieldProps}
       />
-      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1 }}>
+      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, wordBreak: 'break-word', overflowWrap: 'break-word' }}>
         這是 workflow 的起點，訊息將傳遞給第一個 Agent。
       </Typography>
     </Box>
@@ -599,7 +599,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
   const [modelNameValidation, setModelNameValidation] = React.useState<{ valid: boolean; message: string }>({ valid: true, message: '' });
   const [fieldNameValidations, setFieldNameValidations] = React.useState<Record<string, { valid: boolean; message: string }>>({});
 
-  const handleChange = (field: keyof GuardrailNodeData, value: any) => {
+  const handleChange = (field: keyof GuardrailNodeData, value: GuardrailNodeData[keyof GuardrailNodeData]) => {
     if (field === 'guardrailType') {
         updateNodeData(nodeId, { [field]: value as GuardrailType } as Partial<GuardrailNodeData>);
     } else {
@@ -607,55 +607,60 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
     }
   };
 
-  const handlePydanticSchemaChange = (field: keyof PydanticModelSchema, value: any) => {
-    const currentSchema = data.internalAgentPydanticSchema || { modelName: '', fields: [], description: '' };
-    let validationResult = { valid: true, message: '' };
-    if (field === 'modelName') {
-      validationResult = isValidPythonIdentifier(value as string);
-      setModelNameValidation(validationResult);
+  const handlePydanticSchemaChange = (field: keyof PydanticModelSchema, value: PydanticModelSchema[keyof PydanticModelSchema]) => {
+    if (data.internalAgentPydanticSchema) {
+      let validationResult = { valid: true, message: '' };
+      if (field === 'modelName') {
+        validationResult = isValidPythonIdentifier(value as string);
+        setModelNameValidation(validationResult);
+      }
+      updateNodeData(nodeId, {
+        internalAgentPydanticSchema: { ...data.internalAgentPydanticSchema, [field]: value }
+      } as Partial<GuardrailNodeData>);
     }
-    updateNodeData(nodeId, {
-      internalAgentPydanticSchema: { ...currentSchema, [field]: value }
-    } as Partial<GuardrailNodeData>);
   };
 
-  const handlePydanticFieldChange = (fieldId: string, fieldProperty: keyof PydanticField, value: any) => {
-    const currentSchema = data.internalAgentPydanticSchema || { modelName: '', fields: [], description: '' };
-    let currentFieldValidation = { valid: true, message: '' };
-    if (fieldProperty === 'name') {
-      currentFieldValidation = isValidPythonIdentifier(value as string);
-      setFieldNameValidations(prev => ({ ...prev, [fieldId]: currentFieldValidation }));
+  const handlePydanticFieldChange = (fieldId: string, fieldProperty: keyof PydanticField, value: PydanticField[keyof PydanticField]) => {
+    if (data.internalAgentPydanticSchema) {
+      let currentFieldValidation = { valid: true, message: '' };
+      if (fieldProperty === 'name') {
+        currentFieldValidation = isValidPythonIdentifier(value as string);
+        setFieldNameValidations(prev => ({ ...prev, [fieldId]: currentFieldValidation }));
+      }
+      const updatedFields = data.internalAgentPydanticSchema.fields.map(f =>
+        f.id === fieldId ? { ...f, [fieldProperty]: value } : f
+      );
+      updateNodeData(nodeId, {
+        internalAgentPydanticSchema: { ...data.internalAgentPydanticSchema, fields: updatedFields }
+      } as Partial<GuardrailNodeData>);
     }
-    const updatedFields = (currentSchema.fields || []).map(f =>
-      f.id === fieldId ? { ...f, [fieldProperty]: value } : f
-    );
-    updateNodeData(nodeId, {
-      internalAgentPydanticSchema: { ...currentSchema, fields: updatedFields }
-    } as Partial<GuardrailNodeData>);
   };
 
   const addPydanticField = () => {
-    const currentSchema = data.internalAgentPydanticSchema || { modelName: '', fields: [], description: '' };
-    const newFieldId = `pydantic-field-guardrail-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const newField: PydanticField = {
-      id: newFieldId,
-      name: '',
-      type: 'string',
-      isOptional: false,
-      description: ''
-    };
-    handlePydanticSchemaChange('fields', [...(currentSchema.fields || []), newField]);
-    setFieldNameValidations(prev => ({ ...prev, [newFieldId]: { valid: true, message: '' } }));
+    if (data.internalAgentPydanticSchema) {
+      const newFieldId = `pydantic-field-guardrail-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const newField: PydanticField = {
+        id: newFieldId,
+        name: '',
+        type: 'string',
+        isOptional: false,
+        description: ''
+      };
+      handlePydanticSchemaChange('fields', [...(data.internalAgentPydanticSchema.fields || []), newField]);
+      setFieldNameValidations(prev => ({ ...prev, [newFieldId]: { valid: true, message: '' } }));
+    }
   };
 
   const removePydanticField = (fieldId: string) => {
-    const currentSchema = data.internalAgentPydanticSchema || { modelName: '', fields: [], description: '' };
-    const updatedFields = (currentSchema.fields || []).filter(f => f.id !== fieldId);
-    handlePydanticSchemaChange('fields', updatedFields);
-    setFieldNameValidations(prev => {
-      const { [fieldId]: _, ...rest } = prev;
-      return rest;
-    });
+    if (data.internalAgentPydanticSchema) {
+      const updatedFields = data.internalAgentPydanticSchema.fields.filter(f => f.id !== fieldId);
+      handlePydanticSchemaChange('fields', updatedFields);
+      setFieldNameValidations(prev => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldId]: _removedField, ...rest } = prev; 
+        return rest;
+      });
+    }
   };
 
   // Effect to validate modelName on initial load or when data changes from store
@@ -698,13 +703,13 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
       <TextField
         label="名稱 (Guardrail Name)"
         value={data.name}
-        onChange={(e) => handleChange('name', e.target.value)}
+        onChange={(e) => handleChange('name', e.target.value as GuardrailNodeData[keyof GuardrailNodeData])}
         {...commonTextFieldProps}
       />
       <TextField
         label="描述 (Description)"
         value={data.description || ''}
-        onChange={(e) => handleChange('description', e.target.value)}
+        onChange={(e) => handleChange('description', e.target.value as GuardrailNodeData[keyof GuardrailNodeData])}
         multiline
         rows={2}
         {...commonTextFieldProps}
@@ -727,13 +732,13 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
       <TextField
         label="內部 Agent 名稱"
         value={data.internalAgentName}
-        onChange={(e) => handleChange('internalAgentName', e.target.value)}
+        onChange={(e) => handleChange('internalAgentName', e.target.value as GuardrailNodeData[keyof GuardrailNodeData])}
         {...commonTextFieldProps}
       />
       <TextField
         label="內部 Agent 指示"
         value={data.internalAgentInstructions}
-        onChange={(e) => handleChange('internalAgentInstructions', e.target.value)}
+        onChange={(e) => handleChange('internalAgentInstructions', e.target.value as GuardrailNodeData[keyof GuardrailNodeData])}
         multiline
         rows={3}
         {...commonTextFieldProps}
@@ -753,7 +758,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
           <TextField
             label="模型名稱 (Python Class Name)"
             value={data.internalAgentPydanticSchema.modelName}
-            onChange={(e) => handlePydanticSchemaChange('modelName', e.target.value)}
+            onChange={(e) => handlePydanticSchemaChange('modelName', e.target.value as PydanticModelSchema[keyof PydanticModelSchema])}
             {...commonTextFieldProps}
             error={!modelNameValidation.valid}
             helperText={modelNameValidation.valid ? "符合 Python 類別命名規範" : modelNameValidation.message}
@@ -761,7 +766,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
           <TextField
             label="模型描述 (Docstring)"
             value={data.internalAgentPydanticSchema.description || ''}
-            onChange={(e) => handlePydanticSchemaChange('description', e.target.value)}
+            onChange={(e) => handlePydanticSchemaChange('description', e.target.value as PydanticModelSchema[keyof PydanticModelSchema])}
             multiline
             rows={2}
             {...commonTextFieldProps}
@@ -776,7 +781,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
                 <TextField
                   label="字段名稱"
                   value={field.name}
-                  onChange={(e) => handlePydanticFieldChange(field.id, 'name', e.target.value)}
+                  onChange={(e) => handlePydanticFieldChange(field.id, 'name', e.target.value as PydanticField[keyof PydanticField])}
                   size="small"
                   variant="outlined"
                   sx={{ flexGrow: 1 }}
@@ -790,7 +795,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
                     label="類型"
                     value={field.type}
                     onChange={(e: SelectChangeEvent<PydanticField['type']>) =>
-                      handlePydanticFieldChange(field.id, 'type', e.target.value)
+                      handlePydanticFieldChange(field.id, 'type', e.target.value as PydanticField[keyof PydanticField])
                     }
                   >
                     {pydanticFieldTypes.map(type => (
@@ -805,7 +810,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
               <TextField
                 label="字段描述 (可選)"
                 value={field.description || ''}
-                onChange={(e) => handlePydanticFieldChange(field.id, 'description', e.target.value)}
+                onChange={(e) => handlePydanticFieldChange(field.id, 'description', e.target.value as PydanticField[keyof PydanticField])}
                 size="small"
                 variant="outlined"
                 fullWidth
@@ -817,7 +822,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
                 control={
                   <Switch
                     checked={field.isOptional}
-                    onChange={(e) => handlePydanticFieldChange(field.id, 'isOptional', e.target.checked)}
+                    onChange={(e) => handlePydanticFieldChange(field.id, 'isOptional', e.target.checked as PydanticField[keyof PydanticField])}
                     size="small"
                   />
                 }
@@ -842,7 +847,7 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
       <TextField
         label="觸發條件邏輯 (Tripwire Condition)"
         value={data.tripwireConditionLogic}
-        onChange={(e) => handleChange('tripwireConditionLogic', e.target.value)}
+        onChange={(e) => handleChange('tripwireConditionLogic', e.target.value as GuardrailNodeData[keyof GuardrailNodeData])}
         multiline
         rows={2}
         {...commonTextFieldProps}
@@ -856,47 +861,37 @@ const GuardrailProperties: React.FC<{ nodeId: string; data: GuardrailNodeData }>
  * 屬性編輯面板，顯示並編輯選中節點的屬性。
  */
 const PropertiesPanel: React.FC = () => {
-  const { selectedNodeId, nodes } = useWorkflowStore();
-  const selectedNode = nodes.find((n) => n.id === selectedNodeId) as Node<CustomNodeData> | undefined;
+  const selectedNodeId = useWorkflowStore((state) => state.selectedNodeId);
+  const nodes = useWorkflowStore((state) => state.nodes);
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId);
 
   if (!selectedNode) {
-    return <Box sx={{ p: 2, color: 'text.secondary' }}>請選擇一個節點以編輯其屬性。</Box>;
+    return <Box sx={{ p: 2, textAlign: 'center' }}><Typography variant="body2">請選擇一個節點以編輯其屬性。</Typography></Box>;
   }
 
   const renderProperties = () => {
-    if (!selectedNode.data || !selectedNode.id) return null;
-    const { id, data } = selectedNode;
+    if (!selectedNode) return null;
+    // Use CustomNodeData for type assertion
+    const nodeData = selectedNode.data as CustomNodeData;
 
-    switch (data.nodeType) {
+    switch (nodeData.nodeType) {
       case 'agent':
-        return <AgentProperties nodeId={id} data={data as AgentNodeData} />;
+        return <AgentProperties nodeId={selectedNode.id} data={nodeData as AgentNodeData} />;
       case 'runner':
-        return <RunnerProperties nodeId={id} data={data as RunnerNodeData} />;
+        return <RunnerProperties nodeId={selectedNode.id} data={nodeData as RunnerNodeData} />;
       case 'functionTool':
-        return <FunctionToolProperties nodeId={id} data={data as FunctionToolNodeData} />;
+        return <FunctionToolProperties nodeId={selectedNode.id} data={nodeData as FunctionToolNodeData} />;
       case 'input':
-        return <InputProperties nodeId={id} data={data as InputNodeData} />;
+        return <InputProperties nodeId={selectedNode.id} data={nodeData as InputNodeData} />;
       case 'guardrail':
-        return <GuardrailProperties nodeId={id} data={data as GuardrailNodeData} />;
+        return <GuardrailProperties nodeId={selectedNode.id} data={nodeData as GuardrailNodeData} />;
       default:
-        console.error('Unknown node type in PropertiesPanel:', data);
-        return (
-          <TextField
-            label="錯誤"
-            value={`未知節點類型: ${(data as any)?.nodeType}`}
-            disabled
-            {...commonTextFieldProps}
-          />
-        );
+        return <Typography variant="body2">未知的節點類型</Typography>;
     }
   };
 
   return (
-    <Box sx={{ p: 2 }} key={selectedNode.id}>
-      <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>
-        屬性面板: {(selectedNode.data as NodeBaseData)?.name || '未命名'}
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
+    <Box sx={{ background: '#333333', color: '#ffffff', borderLeft: '1px solid #555555', p: 2, overflowY: 'auto', overflowX: 'hidden', wordBreak: 'break-word', boxSizing: 'border-box', flexShrink: 0 }}>
       {renderProperties()}
     </Box>
   );
